@@ -69,7 +69,22 @@ st.markdown("""
 # File upload
 st.markdown('<h1 class="main-header">🛒 E-commerce Analytics Dashboard</h1>', unsafe_allow_html=True)
 
-uploaded_file = st.file_uploader("Upload your Excel file", type=['xlsx', 'xls'])
+# Check if dataset exists in data folder
+import os
+data_file_path = "data/ecommerce_data.xlsx"
+dataset_exists = os.path.exists(data_file_path)
+
+if dataset_exists:
+    st.success(f"✅ Dataset found: {data_file_path}")
+    use_local_file = st.checkbox("Use local dataset", value=True)
+    
+    if use_local_file:
+        uploaded_file = data_file_path
+    else:
+        uploaded_file = st.file_uploader("Or upload a different Excel file", type=['xlsx', 'xls'])
+else:
+    st.info("💡 Place your Excel file as 'data/ecommerce_data.xlsx' for automatic loading")
+    uploaded_file = st.file_uploader("Upload your Excel file", type=['xlsx', 'xls'])
 
 if uploaded_file is not None:
     try:
@@ -193,14 +208,24 @@ if uploaded_file is not None:
                     st.subheader("📈 Delivery Delay vs Complaints")
                     delivery_df = data_sheets['Delivery by sellers by days']
                     
-                    fig_scatter = px.scatter(
-                        delivery_df,
-                        x='avg_delay',
-                        y='complaints',
-                        hover_data=['seller_id'],
-                        title="Correlation: Delivery Delay vs Complaints",
-                        trendline="ols"
-                    )
+                    # Try to add trendline, fallback if statsmodels not available
+                    try:
+                        fig_scatter = px.scatter(
+                            delivery_df,
+                            x='avg_delay',
+                            y='complaints',
+                            hover_data=['seller_id'],
+                            title="Correlation: Delivery Delay vs Complaints",
+                            trendline="ols"
+                        )
+                    except ImportError:
+                        fig_scatter = px.scatter(
+                            delivery_df,
+                            x='avg_delay',
+                            y='complaints',
+                            hover_data=['seller_id'],
+                            title="Correlation: Delivery Delay vs Complaints"
+                        )
                     fig_scatter.update_layout(
                         xaxis_title="Average Delay (Days)",
                         yaxis_title="Number of Complaints"
@@ -353,14 +378,24 @@ if uploaded_file is not None:
                 combined_reviews = pd.merge(neg_df, rep_df, left_index=True, right_index=True, how='outer').fillna(0)
                 combined_reviews.reset_index(inplace=True)
                 
-                fig_combined = px.scatter(
-                    combined_reviews,
-                    x='Negative Review Count',
-                    y='Repeat Review Count',
-                    hover_data=['Seller ID'],
-                    title="Negative Reviews vs Repetitive Reviews",
-                    trendline="ols"
-                )
+                # Try to add trendline, fallback if statsmodels not available
+                try:
+                    fig_combined = px.scatter(
+                        combined_reviews,
+                        x='Negative Review Count',
+                        y='Repeat Review Count',
+                        hover_data=['Seller ID'],
+                        title="Negative Reviews vs Repetitive Reviews",
+                        trendline="ols"
+                    )
+                except ImportError:
+                    fig_combined = px.scatter(
+                        combined_reviews,
+                        x='Negative Review Count',
+                        y='Repeat Review Count',
+                        hover_data=['Seller ID'],
+                        title="Negative Reviews vs Repetitive Reviews"
+                    )
                 st.plotly_chart(fig_combined, use_container_width=True)
         
         with tab5:
