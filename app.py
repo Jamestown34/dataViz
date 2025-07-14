@@ -106,6 +106,16 @@ if uploaded_file is not None:
             except Exception as e:
                 st.sidebar.error(f"❌ {sheet}: {str(e)}")
         
+        # Check for missing sheets
+        required_sheets = [
+            'Fastest sellers', 'Slowest sellers', 'Top Complaints', 'Region delivery delays',
+            'Repetitive Review', 'Negative Reviews', 'Risk Data', 'Return risk next month',
+            'Top 10 risk category', 'Sellers to suspend', 'Delivery by sellers by days'
+        ]
+        missing_sheets = [sheet for sheet in required_sheets if sheet not in data_sheets]
+        if missing_sheets:
+            st.warning(f"Missing sheets: {', '.join(missing_sheets)}")
+        
         # Main dashboard sections
         tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "📈 Performance Overview", 
@@ -172,7 +182,7 @@ if uploaded_file is not None:
                         color='Avg Delivery Delay (Days)',
                         color_continuous_scale='viridis'
                     )
-                    fig_region.update_xaxis(tickangle=45)
+                    fig_region.update_xaxes(tickangle=45)  # Corrected
                     st.plotly_chart(fig_region, use_container_width=True)
         
         with tab2:
@@ -200,7 +210,7 @@ if uploaded_file is not None:
                         title="Seller Delivery Performance Comparison",
                         color_discrete_map={'Fastest': 'green', 'Slowest': 'red'}
                     )
-                    fig_speed.update_xaxis(tickangle=45)
+                    fig_speed.update_xaxes(tickangle=45)  # Corrected
                     st.plotly_chart(fig_speed, use_container_width=True)
             
             with col2:
@@ -292,7 +302,7 @@ if uploaded_file is not None:
                         color='Predicted Return Rate',
                         color_continuous_scale='reds'
                     )
-                    fig_risk_cat.update_xaxis(tickangle=45)
+                    fig_risk_cat.update_xaxes(tickangle=45)  # Corrected
                     st.plotly_chart(fig_risk_cat, use_container_width=True)
             
             # Sellers to suspend
@@ -348,13 +358,13 @@ if uploaded_file is not None:
                         color='Negative Review Count',
                         color_continuous_scale='reds'
                     )
-                    fig_neg.update_xaxis(tickangle=45)
+                    fig_neg.update_xaxes(tickangle=45)  # Corrected
                     st.plotly_chart(fig_neg, use_container_width=True)
             
             with col2:
-                if 'Repetative Review' in data_sheets:
+                if 'Repetitive Review' in data_sheets:
                     st.subheader("🔄 Repetitive Reviews by Seller")
-                    rep_reviews_df = data_sheets['Repetative Review'].sort_values('Repeat Review Count', ascending=False)
+                    rep_reviews_df = data_sheets['Repetitive Review'].sort_values('Repeat Review Count', ascending=False)
                     
                     fig_rep = px.bar(
                         rep_reviews_df.head(15),
@@ -364,16 +374,16 @@ if uploaded_file is not None:
                         color='Repeat Review Count',
                         color_continuous_scale='oranges'
                     )
-                    fig_rep.update_xaxis(tickangle=45)
+                    fig_rep.update_xaxes(tickangle=45)  # Corrected
                     st.plotly_chart(fig_rep, use_container_width=True)
             
             # Combined review analysis
-            if 'Negative Reviews' in data_sheets and 'Repetative Review' in data_sheets:
+            if 'Negative Reviews' in data_sheets and 'Repetitive Review' in data_sheets:
                 st.subheader("📊 Combined Review Analysis")
                 
                 # Merge negative and repetitive reviews
                 neg_df = data_sheets['Negative Reviews'].set_index('Seller ID')
-                rep_df = data_sheets['Repetative Review'].set_index('Seller ID')
+                rep_df = data_sheets['Repetitive Review'].set_index('Seller ID')
                 
                 combined_reviews = pd.merge(neg_df, rep_df, left_index=True, right_index=True, how='outer').fillna(0)
                 combined_reviews.reset_index(inplace=True)
@@ -458,7 +468,7 @@ else:
     2. **Slowest sellers**: Seller ID, Avg Delivery Delay (Days)  
     3. **Top Complaints**: Product Category, Complaint Count
     4. **Region delivery delays**: Customer Region, Avg Delivery Delay (Days)
-    5. **Repetative Review**: Seller ID, Repeat Review Count
+    5. **Repetitive Review**: Seller ID, Repeat Review Count
     6. **Negative Reviews**: Seller ID, Negative Review Count
     7. **Risk Data**: seller_id, avg_predicted_return_risk, total_orders, actual_returns, suspend_seller
     8. **Return risk next month**: seller_id, Predicted Return Probability, Total Orders in Test Set, Actual Returns in Test Set, Risk Status for Next Month
